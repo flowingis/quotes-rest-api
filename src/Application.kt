@@ -23,7 +23,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    val qutoes = Quotes()
+    val quotes = Quotes()
     install(ContentNegotiation) {
         gson {
         }
@@ -43,7 +43,7 @@ fun Application.module(testing: Boolean = false) {
             val tag = call.request.queryParameters["tag"] ?: ""
             val count = call.request.queryParameters["count"]?.toIntOrNull() ?: Int.MAX_VALUE
             val maxSize = call.request.queryParameters["max-size"]?.toIntOrNull() ?: 0
-            call.respond(qutoes.search(
+            call.respond(quotes.search(
                 query = query,
                 maxSize = maxSize,
                 author = author,
@@ -53,11 +53,11 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/tags") {
-            call.respond(qutoes.tags())
+            call.respond(quotes.tags())
         }
 
         get("/authors") {
-            call.respond(qutoes.authors())
+            call.respond(quotes.authors())
         }
 
         get("/random") {
@@ -65,7 +65,7 @@ fun Application.module(testing: Boolean = false) {
             val author = call.request.queryParameters["author"] ?: ""
             val tag = call.request.queryParameters["tag"] ?: ""
             val maxSize = call.request.queryParameters["max-size"]?.toIntOrNull() ?: 0
-            call.respond(qutoes.random(
+            call.respond(quotes.random(
                 query = query,
                 maxSize = maxSize,
                 author = author,
@@ -81,7 +81,7 @@ fun Application.module(testing: Boolean = false) {
                 return@get
             }
 
-            val quote = qutoes.find(id)
+            val quote = quotes.find(id)
 
             if(quote != null){
                 call.respond(quote)
