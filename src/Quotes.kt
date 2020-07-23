@@ -41,4 +41,19 @@ class Quotes {
             ) }
             .mapIndexed() { i: Int, tempQuote: TempQuote -> Quote(i, tempQuote.text,tempQuote.author,parseTags(tempQuote.unparsedTags) )}
     }
+
+    fun authors(): List<String> {
+        return list()
+            .map { quote -> quote.author }
+            .distinct()
+            .sorted()
+    }
+
+    fun tags(): List<String> {
+        return list()
+            .map { quote -> quote.tags }
+            .flatten()
+            .distinct()
+            .sorted()
+    }
 }

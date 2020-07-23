@@ -39,8 +39,15 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/quotes") {
-            val query =
             call.respond(qutoes.list())
+        }
+
+        get("/tags") {
+            call.respond(qutoes.tags())
+        }
+
+        get("/authors") {
+            call.respond(qutoes.authors())
         }
 
         get("/random") {
