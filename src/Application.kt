@@ -7,6 +7,7 @@ import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.jetty.*
+import io.ktor.http.HttpStatusCode
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -70,6 +71,24 @@ fun Application.module(testing: Boolean = false) {
                 author = author,
                 tag = tag
             ))
+        }
+
+        get("/quotes/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull() ?: 0
+
+            if(id <= 0){
+                call.respond(HttpStatusCode.BadRequest)
+                return@get
+            }
+
+            val quote = qutoes.find(id)
+
+            if(quote != null){
+                call.respond(quote)
+                return@get
+            }
+
+            call.respond(HttpStatusCode.NotFound)
         }
     }
 }

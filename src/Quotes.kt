@@ -20,21 +20,6 @@ class Quotes {
             .map { m -> m.groupValues[1] }
     }
 
-    fun search(
-        query: String,
-        maxSize: Int,
-        author: String,
-        tag: String,
-        count: Int
-    ) : List<Quote> {
-        return list()
-            .filter { quote -> if(query.isNotEmpty()) quote.text.contains(query,true) else true }
-            .filter { quote -> if(maxSize > 0) quote.text.length <= maxSize else true }
-            .filter { quote -> if(author.isNotEmpty()) quote.author.equals(author,true) else true }
-            .filter { quote -> if(tag.isNotEmpty()) quote.tags.any { t -> t.equals(tag,true) } else true }
-            .take(count)
-    }
-
     private fun list(): List<Quote> {
         val rows = sheets.getValues(
             SPREADSHEET_ID,
@@ -57,6 +42,27 @@ class Quotes {
                 )
             }
     }
+
+    fun find(id: Int): Quote? {
+        check(id > 0)
+        return list().find { quote -> quote.id == id }
+    }
+
+    fun search(
+        query: String,
+        maxSize: Int,
+        author: String,
+        tag: String,
+        count: Int
+    ) : List<Quote> {
+        return list()
+            .filter { quote -> if(query.isNotEmpty()) quote.text.contains(query,true) else true }
+            .filter { quote -> if(maxSize > 0) quote.text.length <= maxSize else true }
+            .filter { quote -> if(author.isNotEmpty()) quote.author.equals(author,true) else true }
+            .filter { quote -> if(tag.isNotEmpty()) quote.tags.any { t -> t.equals(tag,true) } else true }
+            .take(count)
+    }
+
 
     fun authors(): List<String> {
         return list()
