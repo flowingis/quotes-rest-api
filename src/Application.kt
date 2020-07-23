@@ -9,6 +9,15 @@ import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.jetty.*
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+
+
+class Info(_uptime: OffsetDateTime) {
+    val uptime = _uptime.format(DateTimeFormatter.ISO_DATE_TIME)
+}
+
+val INFO_INSTANCE = Info(OffsetDateTime.now())
 
 fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
 
@@ -25,7 +34,12 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        get("/") {
+            call.respond(INFO_INSTANCE)
+        }
+
         get("/quotes") {
+            val query =
             call.respond(qutoes.list())
         }
 
