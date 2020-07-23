@@ -35,7 +35,7 @@ class Quotes {
             .take(count)
     }
 
-    fun list(): List<Quote> {
+    private fun list(): List<Quote> {
         val rows = sheets.getValues(
             SPREADSHEET_ID,
             RANGE
@@ -71,5 +71,15 @@ class Quotes {
             .flatten()
             .distinct()
             .sorted()
+    }
+
+    fun random(query: String, maxSize: Int, author: String, tag: String): Quote {
+        return search(
+            query = query,
+            maxSize = maxSize,
+            author = author,
+            tag = tag,
+            count = Int.MAX_VALUE
+        ).random()
     }
 }

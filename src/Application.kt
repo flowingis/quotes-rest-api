@@ -60,7 +60,16 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/random") {
-            call.respond(qutoes.list().random())
+            val query = call.request.queryParameters["q"] ?: ""
+            val author = call.request.queryParameters["author"] ?: ""
+            val tag = call.request.queryParameters["tag"] ?: ""
+            val maxSize = call.request.queryParameters["max-size"]?.toIntOrNull() ?: 0
+            call.respond(qutoes.random(
+                query = query,
+                maxSize = maxSize,
+                author = author,
+                tag = tag
+            ))
         }
     }
 }
