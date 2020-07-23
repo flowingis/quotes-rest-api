@@ -2,9 +2,7 @@ package it.flowing
 
 import io.ktor.application.*
 import io.ktor.response.*
-import io.ktor.request.*
 import io.ktor.routing.*
-import io.ktor.http.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.client.*
@@ -39,7 +37,18 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/quotes") {
-            call.respond(qutoes.list())
+            val query = call.request.queryParameters["q"] ?: ""
+            val author = call.request.queryParameters["author"] ?: ""
+            val tag = call.request.queryParameters["tag"] ?: ""
+            val count = call.request.queryParameters["count"]?.toIntOrNull() ?: Int.MAX_VALUE
+            val maxSize = call.request.queryParameters["max-size"]?.toIntOrNull() ?: 0
+            call.respond(qutoes.search(
+                query = query,
+                maxSize = maxSize,
+                author = author,
+                tag = tag,
+                count = count
+            ))
         }
 
         get("/tags") {
