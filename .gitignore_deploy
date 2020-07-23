@@ -6,4 +6,3 @@
 *.ipr
 *.iws
 /target
-resources/service.json
