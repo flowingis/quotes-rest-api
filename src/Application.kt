@@ -7,7 +7,14 @@ import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.jetty.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.auth.Authentication
+import io.ktor.auth.UserIdPrincipal
+import io.ktor.auth.authenticate
+import io.ktor.auth.basic
+import it.flowing.config.Credentials
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -18,12 +25,32 @@ class Info(_uptime: OffsetDateTime) {
 
 val INFO_INSTANCE = Info(OffsetDateTime.now())
 
+val credentials = Credentials.load()
+
 fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     val quotes = Quotes()
+
+    install(CORS) {
+        method(HttpMethod.Options)
+        method(HttpMethod.Put)
+        method(HttpMethod.Delete)
+        method(HttpMethod.Patch)
+        header(HttpHeaders.Authorization)
+        allowCredentials = true
+        anyHost()
+    }
+
+    install(Authentication) {
+        basic("myBasicAuth") {
+            realm = "Ktor Server"
+            validate { if (it.name == credentials.user && it.password == credentials.password) UserIdPrincipal(it.name) else null }
+        }
+    }
+
     install(ContentNegotiation) {
         gson {
         }
@@ -89,6 +116,12 @@ fun Application.module(testing: Boolean = false) {
             }
 
             call.respond(HttpStatusCode.NotFound)
+        }
+
+        authenticate("myBasicAuth") {
+            post("/quotes") {
+                call.respond("OK")
+            }
         }
     }
 }

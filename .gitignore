@@ -7,3 +7,4 @@
 *.iws
 /target
 resources/service.json
+resources/credentials.json
