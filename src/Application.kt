@@ -123,15 +123,12 @@ fun Application.module(testing: Boolean = false) {
             post("/quotes") {
                 val dto = call.receive<QuoteDTO>()
                 val maybeQuote = dto.toQuote()
-                if(maybeQuote == null){
-                    call.respond(HttpStatusCode.BadRequest)
-                    return@post
+                if(maybeQuote.quote != null){
+                    val insertedQuote = quotes.insert(maybeQuote.quote)
+                    call.respond(insertedQuote)
+                }else {
+                    call.respond(HttpStatusCode.BadRequest, maybeQuote)
                 }
-
-                val insertedQuote = quotes.insert(maybeQuote)
-
-                call.respond(insertedQuote)
-
             }
         }
     }
