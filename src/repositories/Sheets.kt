@@ -1,4 +1,4 @@
-package it.flowing
+package it.flowing.repositories
 
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
@@ -8,6 +8,7 @@ import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.sheets.v4.Sheets
 import com.google.api.services.sheets.v4.SheetsScopes
+import com.google.api.services.sheets.v4.model.ValueRange
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -15,8 +16,13 @@ import java.security.GeneralSecurityException
 class Sheets {
 
     private val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance()
-    private val SCOPES = listOf(SheetsScopes.SPREADSHEETS_READONLY)
+    private val SCOPES = listOf(SheetsScopes.SPREADSHEETS)
     private val CREDENTIALS_FILE_PATH = "/service.json"
+    private val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
+    private val service = Sheets
+        .Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+        .setApplicationName("Application Name")
+        .build()
 
 
     @Throws(IOException::class)
@@ -31,13 +37,37 @@ class Sheets {
         spreadsheetId: String,
         range: String
     ): List<List<Any>> {
-        val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
-        val service =
-            Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                .setApplicationName("Application Name")
-                .build()
         val response = service.spreadsheets().values()[spreadsheetId, range]
             .execute()
+
         return response.getValues()
+    }
+
+    fun writeValues(
+        spreadsheetId: String,
+        range: String,
+        rows: List<List<String>>
+    ) {
+        val body: ValueRange = ValueRange().setValues(rows)
+        service
+            .spreadsheets()
+            .values()
+            .update(spreadsheetId, range, body)
+            .setValueInputOption("USER_ENTERED")
+            .execute()
+    }
+
+    fun appendValues(
+        spreadsheetId: String,
+        range: String,
+        rows: List<List<String>>
+    ) {
+        val body: ValueRange = ValueRange().setValues(rows)
+        service
+            .spreadsheets()
+            .values()
+            .append(spreadsheetId, range, body)
+            .setValueInputOption("USER_ENTERED")
+            .execute()
     }
 }

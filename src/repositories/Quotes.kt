@@ -1,26 +1,17 @@
-package it.flowing
+package it.flowing.repositories
 
 class Quotes {
-    class Quote(val id: Int, val text: String, val author: String, val tags: List<String>)
-
-    private class TempQuote(val text: String, val author: String, val unparsedTags: String)
+    data class Quote(val id: Int?, val text: String, val author: String, val tags: List<String>)
 
     private val sheets = Sheets()
 
     companion object {
+        private const val START_ROW = 2
         private const val SPREADSHEET_ID = "1cE183aiFTxAcz2zaIh-Jl9zsHSOBa9kenBZ5yv7k6as"
-        private const val RANGE = "Foglio1!A2:D"
+        private const val RANGE = "Citazioni!A$START_ROW:M"
     }
 
-    private fun parseTags(unparsedTags: String): List<String> {
-        val regex = Regex("\\bname :\\s+(\\w+)",RegexOption.MULTILINE)
-        return regex
-            .findAll(unparsedTags)
-            .toList()
-            .map { m -> m.groupValues[1] }
-    }
-
-    private fun list(): List<Quote> {
+    fun list(): List<Quote> {
         val rows = sheets.getValues(
             SPREADSHEET_ID,
             RANGE
@@ -28,17 +19,13 @@ class Quotes {
 
         return rows
             .filter { l -> l.isNotEmpty()}
-            .map{ l -> TempQuote(
-                l[0].toString(),
-                l[1].toString(),
-                l[3].toString()
-            ) }
-            .mapIndexed { i: Int, tempQuote: TempQuote ->
+            .map { l -> l.map { e -> e.toString() } }
+            .mapIndexed { i: Int, row ->
                 Quote(
-                    id = i,
-                    text = tempQuote.text,
-                    author = tempQuote.author,
-                    tags = parseTags(tempQuote.unparsedTags)
+                    id = START_ROW + i,
+                    text = row[0],
+                    author = row[1],
+                    tags = row.drop(2)
                 )
             }
     }
@@ -87,5 +74,29 @@ class Quotes {
             tag = tag,
             count = Int.MAX_VALUE
         ).random()
+    }
+
+    private fun nextId(): Int {
+        val lastId = list()
+            .map { q -> q.id }
+            .filterNotNull()
+            .max() ?: 0
+
+        return lastId + 1;
+    }
+
+    fun insert(q: Quote): Quote {
+        val id = nextId()
+
+        val row = listOf(listOf(q.text,q.author),q.tags).flatten()
+        var range = "Citazioni!A$id"
+
+        sheets.appendValues(
+            SPREADSHEET_ID,
+            range,
+            listOf(row)
+        )
+
+        return q.copy(id = id)
     }
 }

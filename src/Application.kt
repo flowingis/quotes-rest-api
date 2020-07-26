@@ -14,7 +14,10 @@ import io.ktor.auth.Authentication
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authenticate
 import io.ktor.auth.basic
+import io.ktor.request.receive
 import it.flowing.config.Credentials
+import it.flowing.dto.QuoteDTO
+import it.flowing.repositories.Quotes
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -23,16 +26,14 @@ class Info(_uptime: OffsetDateTime) {
     val uptime = _uptime.format(DateTimeFormatter.ISO_DATE_TIME)
 }
 
-val INFO_INSTANCE = Info(OffsetDateTime.now())
-
-val credentials = Credentials.load()
-
 fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     val quotes = Quotes()
+    val INFO_INSTANCE = Info(OffsetDateTime.now())
+    val credentials = Credentials.load()
 
     install(CORS) {
         method(HttpMethod.Options)
@@ -120,7 +121,17 @@ fun Application.module(testing: Boolean = false) {
 
         authenticate("myBasicAuth") {
             post("/quotes") {
-                call.respond("OK")
+                val dto = call.receive<QuoteDTO>()
+                val maybeQuote = dto.toQuote()
+                if(maybeQuote == null){
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@post
+                }
+
+                val insertedQuote = quotes.insert(maybeQuote)
+
+                call.respond(insertedQuote)
+
             }
         }
     }
